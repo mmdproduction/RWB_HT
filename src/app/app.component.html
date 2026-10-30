@@ -1,0 +1,47 @@
+<mat-toolbar color="primary">
+  <div style="display: flex; align-items: center; width: 100%; max-width: 1400px; margin: 0 auto;">
+    <!-- Логотип RUSS -->
+    <div style="display: flex; align-items: center; margin-right: 24px;">
+      <div style="background: rgba(255,255,255,0.15); border-radius: 10px; padding: 8px; margin-right: 12px; backdrop-filter: blur(10px);">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <rect width="36" height="36" rx="6" fill="white"/>
+          <text x="18" y="25" font-family="Inter" font-size="18" font-weight="800" fill="#003366" text-anchor="middle">R</text>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size: 20px; font-weight: 800; letter-spacing: 1.5px; color: white;">RUSSTECH</div>
+        <div style="font-size: 11px; opacity: 0.85; letter-spacing: 0.8px; color: rgba(255,255,255,0.9);">AI PIPELINE PLATFORM</div>
+      </div>
+    </div>
+    
+    <span style="flex: 1 1 auto;"></span>
+    
+    <!-- Навигация -->
+    <a mat-button routerLink="/new" style="color: white !important; margin-right: 16px; font-weight: 600;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 6px; vertical-align: middle;">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" fill="currentColor"/>
+      </svg>
+      Новый запуск
+    </a>
+    
+    <!-- Статус системы -->
+    <div style="display: flex; align-items: center; padding: 8px 16px; background: rgba(255,255,255,0.15); border-radius: 24px; backdrop-filter: blur(10px);">
+      <div style="width: 8px; height: 8px; background: #4CAF50; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 8px #4CAF50;"></div>
+      <span style="font-size: 13px; color: white; font-weight: 500;">Система активна</span>
+    </div>
+  </div>
+</mat-toolbar>
+
+<!-- Слои фона нейросети -->
+<div class="neural-connections"></div>
+<div class="floating-glow"></div>
+
+<div style="padding: 40px 24px; max-width: 1200px; margin: 0 auto; position: relative; z-index: 1;">
+  <router-outlet></router-outlet>
+</div>
+
+<!-- Футер -->
+<footer style="text-align: center; padding: 32px; color: #90a4ae; font-size: 13px; margin-top: 48px; position: relative; z-index: 1;">
+  <div style="font-weight: 500;">© 2026 Russtech AI Platform. Все права защищены.</div>
+  <div style="margin-top: 8px; opacity: 0.7; font-size: 12px;">Версия 1.0.0 | Angular 20.1.6</div>
+</footer>

@@ -1,0 +1,67 @@
+<div>
+  <div class="page-header animate-fade-in">
+    <h1>Бизнес-идея</h1>
+    <p>Опишите вашу идею, и AI-пайплайн Russtech превратит её в полноценное приложение за считанные минуты</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card animate-slide-up"><div class="stat-value">{{ stats.totalRuns }}</div><div class="stat-label">Всего запусков</div></div>
+    <div class="stat-card animate-slide-up"><div class="stat-value">{{ stats.successRate }}%</div><div class="stat-label">Успешных</div></div>
+    <div class="stat-card animate-slide-up"><div class="stat-value">{{ stats.avgTime }}</div><div class="stat-label">Среднее время</div></div>
+    <div class="stat-card animate-slide-up"><div class="stat-value">{{ stats.activeUsers }}</div><div class="stat-label">Активных пользователей</div></div>
+  </div>
+
+  <div class="main-card animate-slide-up">
+    <div class="card-title">
+      <div class="card-title-icon"><mat-icon>lightbulb</mat-icon></div>
+      Опишите вашу идею
+    </div>
+    <div class="card-subtitle">Чем подробнее описание, тем точнее будет результат генерации</div>
+    
+    <textarea class="custom-textarea" [(ngModel)]="requirements" placeholder="Например: Система управления парковкой. Роли: водитель, администратор. Сущности: зоны, сессии, платежи."></textarea>
+    <div class="char-count">{{ requirements.length }} символов</div>
+    
+    @if (error) { 
+      <div class="error"><mat-icon style="margin-right: 12px; font-size: 22px;">error_outline</mat-icon>{{ error }}</div> 
+    }
+    
+    <div class="actions">
+      <button class="launch-btn" mat-flat-button (click)="startRun()" [disabled]="loading">
+        @if (loading) {
+          <mat-spinner diameter="24" style="margin-right: 14px;"></mat-spinner>
+        } @else {
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 12px; vertical-align: middle;">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" fill="currentColor"/>
+          </svg>
+        }
+        Запустить генерацию
+      </button>
+      <div class="time-info"><mat-icon style="font-size: 22px;">schedule</mat-icon>Примерное время: ~5 минут</div>
+    </div>
+
+    <div class="hint-box animate-slide-up">
+      <h4><mat-icon style="font-size: 22px;">tips_and_updates</mat-icon>Советы по составлению требований</h4>
+      <ul>
+        <li><strong>Роли пользователей</strong> — кто будет использовать систему</li>
+        <li><strong>Основные сущности</strong> — что нужно учитывать (зоны, сессии, платежи)</li>
+        <li><strong>Ключевые сценарии</strong> — главные действия (поиск, оплата)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="recent-section" style="margin-top: 64px;">
+    <h3><mat-icon style="font-size: 26px;">history</mat-icon>Последние запуски</h3>
+    <div class="recent-list">
+      @for (run of recentRuns; track run.id) {
+        <div class="recent-item" (click)="navigateToStatus(run.id)">
+          <mat-icon [style.color]="getStatusColor(run.status)" style="margin-right: 16px; font-size: 24px;">{{ getStatusIcon(run.status) }}</mat-icon>
+          <div style="flex: 1;">
+            <div style="font-weight: 600; color: #212529; margin-bottom: 4px;">{{ run.name }}</div>
+            <div style="font-size: 13px; color: #6c757d;">{{ run.id }} • {{ run.time }}</div>
+          </div>
+          <mat-icon style="color: #adb5bd;">chevron_right</mat-icon>
+        </div>
+      }
+    </div>
+  </div>
+</div>

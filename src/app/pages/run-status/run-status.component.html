@@ -1,0 +1,92 @@
+<div class="container">
+  <div class="header">
+    <h1>Генерация приложения</h1>
+    <p style="color: #e2e8f0;">Run ID: {{ runId }}</p>
+    <p style="color: #cbd5e1; font-size: 16px; font-weight: 600; margin-top: 8px;">
+      <mat-icon style="vertical-align: middle; font-size: 18px; margin-right: 4px;">timer</mat-icon>
+      Время: {{ formatTime(elapsedTime) }}
+    </p>
+  </div>
+
+  @if (error) {
+    <mat-card style="background: #ffebee; color: #c62828; padding: 16px; border-radius: 12px; margin-bottom: 24px;">
+      {{ error }}
+    </mat-card>
+  }
+  
+  @if (run) {
+    <!-- Статус над прогресс-баром -->
+    <div style="text-align: center; margin: 40px 0 20px;">
+      <h2 [class]="getStatusClass()" class="status-text">
+        {{ getStatusText() }}
+      </h2>
+    </div>
+
+    <!-- Плоский прогресс-бар без рамки -->
+    <div style="margin: 0 0 40px;">
+      <div style="height: 12px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden;">
+        <div 
+          style="height: 100%; background: linear-gradient(90deg, #003366, #0066CC); border-radius: 6px; transition: width 0.8s ease;"
+          [style.width.%]="progress">
+        </div>
+      </div>
+      <div style="text-align: right; margin-top: 8px; font-size: 18px; font-weight: 700; color: #e2e8f0;">
+        {{ progress }}%
+      </div>
+    </div>
+
+    <!-- Стадии -->
+    <div class="stages-section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Стадии генерации</h2>
+        
+        @if (run.status === 'succeeded') {
+          <button 
+            mat-flat-button 
+            (click)="goToResult()" 
+            style="background: linear-gradient(135deg, #003366 0%, #0066CC 100%); color: white; padding: 10px 24px; font-size: 14px; font-weight: 600; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 51, 102, 0.2);">
+            <mat-icon style="font-size: 18px; vertical-align: middle; margin-right: 6px;">arrow_forward</mat-icon>
+            К результату
+          </button>
+        }
+      </div>
+
+      <mat-list style="padding: 0; width: 100%;">
+        @for (stage of run.stages; track stage.name) {
+          <div class="stage-item" [class]="getStageClass(stage.status)">
+            <mat-icon class="stage-icon" [style.color]="stage.status === 'running' ? '#1976d2' : stage.status === 'passed' ? '#4caf50' : stage.status === 'failed' ? '#f44336' : '#999'">
+              {{ getStageIcon(stage.status) }}
+            </mat-icon>
+            <div class="stage-content">
+              <div class="stage-name">{{ stage.name }}</div>
+              <div class="stage-status">{{ stage.status }}</div>
+            </div>
+          </div>
+        }
+      </mat-list>
+    </div>
+
+    <!-- Логи -->
+    <div class="logs-section">
+      <div class="logs-header">
+        <mat-icon style="vertical-align: middle; margin-right: 8px;">terminal</mat-icon>
+        Логи генерации
+      </div>
+      <div class="logs-content">
+        @if (run.logs && run.logs.length > 0) {
+          @for (log of run.logs; track $index) {
+            <div class="log-line">{{ log }}</div>
+          }
+        } @else {
+          <div class="log-line">Ожидание начала генерации...</div>
+        }
+      </div>
+    </div>
+
+  } @else {
+    <div style="text-align: center; padding: 48px;">
+      <mat-spinner diameter="48" style="margin: 0 auto 16px;"></mat-spinner>
+      <p>Загрузка данных...</p>
+    </div>
+  }
+</div>
