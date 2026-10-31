@@ -10,6 +10,30 @@ from worker.product_generation import phase
 from worker.prompts import product_design
 
 
+
+def test_capture_required_id():
+    schema = {
+        "type": "object",
+        "properties": {
+            "id": {"type": "integer"}
+        },
+        "required": ["id"]
+    }
+
+    assert capture_schema(schema, "id")["type"] == "integer"
+
+
+def test_capture_optional_id_rejected():
+    schema = {
+        "type": "object",
+        "properties": {
+            "id": {"type": "integer"}
+        }
+    }
+
+    with pytest.raises(ValueError):
+        capture_schema(schema, "id")
+
 def task_spec():
     return AppSpec.model_validate({
         'schemaVersion': 1, 'title': 'Задачи', 'slug': 'tasks',

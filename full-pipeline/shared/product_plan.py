@@ -136,7 +136,21 @@ def validate_quality_acceptance(http_tests,browser_tests,plan:ProductPlan,spec:A
                     validate_reference_types(step.get('body',{}),endpoint['requestSchema'],variables)
                 covered_endpoints.add(endpoint['id'])
                 http_covered.update(set(test['requirementIds']) & set(endpoint['requirementIds']))
-            for name,path in step.get('capture',{}).items(): variables[name]=capture_schema(response['bodySchema'],path)
+            for name, path in step.get('capture', {}).items():
+                try:
+                    variables[name] = capture_schema(
+                        response['bodySchema'], path
+                    )
+                except ValueError as exc:
+                    raise ValueError(
+                        f"Scenario '{test['name']}': "
+                        f"{step['method']} {step['path']} "
+                        f"cannot capture '{name}' from '{path}'. "
+                        f"{exc}. "
+                        "Only capture properties guaranteed by the "
+                        "frozen response bodySchema. "
+                        "Remove unsupported captures and references."
+                    ) from exc
     if {e.id for e in plan.endpoints}-covered_endpoints: raise ValueError('HTTP acceptance omits planned successful endpoints: '+', '.join(sorted({e.id for e in plan.endpoints}-covered_endpoints)))
     if not isinstance(browser_tests,list) or not 1<=len(browser_tests)<=20: raise ValueError('Need declarative browserTests before implementation')
     controls={c.id:c for s in plan.screens for c in s.controls}
