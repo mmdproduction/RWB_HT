@@ -1,0 +1,26 @@
+image: docker:27-cli
+services:
+  - name: docker:27-dind
+variables:
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+stages: [verify]
+verify:
+  stage: verify
+  script:
+    - export TEST_CLOCK_ENABLED=true
+    - export DB_PASSWORD="ci-${CI_PIPELINE_ID}-${CI_JOB_ID}"
+    - docker compose --profile checks -p "rwb_ci_${CI_PIPELINE_ID}" build
+    - docker compose -p "rwb_ci_${CI_PIPELINE_ID}" up -d --wait
+    - docker compose -p "rwb_ci_${CI_PIPELINE_ID}" run --rm checks python /checks/domain_checks.py
+    - docker compose -p "rwb_ci_${CI_PIPELINE_ID}" run --rm checks
+    - docker compose -p "rwb_ci_${CI_PIPELINE_ID}" restart backend
+    - docker compose -p "rwb_ci_${CI_PIPELINE_ID}" up -d --wait backend
+    - docker compose -p "rwb_ci_${CI_PIPELINE_ID}" run --rm -e PERSISTENCE_ONLY=1 checks
+  after_script:
+    - export DB_PASSWORD="ci-${CI_PIPELINE_ID}-${CI_JOB_ID}"
+    - docker compose -p "rwb_ci_${CI_PIPELINE_ID}" logs --no-color > compose.log
+    - docker compose -p "rwb_ci_${CI_PIPELINE_ID}" down -v --remove-orphans
+  artifacts:
+    when: always
+    paths: [compose.log, docs/openapi.json, app-spec.json]

@@ -1,0 +1,11 @@
+<section class="qwen-card" [attr.data-status]="state()" aria-label="Подключение Qwen API">
+  <div class="qwen-heading"><div class="qwen-name"><strong>QWEN_API</strong><span class="qwen-badge" aria-live="polite"><i aria-hidden="true"></i>{{ label(state()) }}</span></div><button mat-button type="button" [disabled]="checking()" (click)="refresh()" aria-label="Обновить статус подключения Qwen">{{ checking() ? 'Обновляем…' : 'Обновить' }}</button></div>
+  <p class="qwen-message" aria-live="polite">{{ error() || status()?.message || 'Получаем состояние подключения от worker…' }}</p>
+  @if (status(); as current) {
+    <div class="qwen-meta"><span>{{ current.model }}</span>@if (current.latencyMs !== null && state() !== 'stale' && !error()) { <span>Ответ: {{ current.latencyMs }} мс</span> }@if (current.checkedAt) { <span>Проверка: {{ current.checkedAt | date:'HH:mm:ss' }}</span> }@if (current.lastAvailableAt && state() !== 'available') { <span>Последнее подключение: {{ current.lastAvailableAt | date:'dd.MM HH:mm:ss' }}</span> }</div>
+    @if (current.history.length) {
+      <details class="qwen-history"><summary>История подключения</summary><ol>@for (event of current.history; track $index) { <li><time>{{ event.checkedAt | date:'HH:mm:ss' }}</time><span>{{ label(event.status) }} · {{ event.message }}</span></li> }</ol></details>
+    }
+  }
+  <div class="qwen-note">Проверка соединения каждые 15 с, без генерации и расхода токенов. Доступность API не гарантирует выполнение следующего запроса генерации.</div>
+</section>

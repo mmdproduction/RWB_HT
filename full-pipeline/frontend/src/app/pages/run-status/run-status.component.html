@@ -1,0 +1,27 @@
+<div class="run-workspace">
+  @if (run) {
+    <app-run-header [run]="run" active="progress" [refreshing]="refreshing" (refresh)="poll()" (reuse)="reuse()"></app-run-header>
+    @if (error) { <div class="run-notice error-notice" role="alert">{{ error }} <button mat-button (click)="poll()">Повторить</button></div> }
+    @if (run.message) { <div class="run-notice" [class.error-notice]="run.status === 'failed' || run.status === 'blocked' || run.status === 'interrupted'" role="status">{{ run.message }}</div> }
+    <section class="metrics-grid" aria-label="Метрики запуска">
+      <div class="metric-card"><span class="metric-label">Пройдено стадий</span><strong class="metric-value">{{ passedCount() }}<small> / {{ run.stages.length }}</small></strong><mat-progress-bar mode="determinate" [value]="progress" aria-label="Доля успешно пройденных стадий"></mat-progress-bar><span class="metric-note">{{ progress }}% выполнено успешно</span></div>
+      <div class="metric-card"><span class="metric-label">{{ run.status === 'queued' ? 'Время ожидания' : 'Длительность' }}</span><strong class="metric-value">{{ formatTime(elapsedTime) }}</strong></div>
+      <div class="metric-card"><span class="metric-label">Обращения к модели</span><strong class="metric-value">{{ run.metrics.modelCalls }}</strong><span class="metric-note">Повторов: {{ run.metrics.retries }}</span></div>
+      <div class="metric-card"><span class="metric-label">Токены · вход / выход</span><strong class="metric-value token-value">{{ run.metrics.inputTokens ?? 'Нет данных' }} / {{ run.metrics.outputTokens ?? 'Нет данных' }}</strong>@if (run.metrics.tokenUsageComplete === false) { <span class="metric-note">Модель вернула неполные сведения</span> }</div>
+    </section>
+    @if (run.status === 'queued') { <div class="run-notice" role="status">Запуск в очереди. Стадии начнутся после назначения исполнителя.</div> }
+    <div class="progress-grid">
+      <section class="panel stages-section"><div class="section-heading"><div><div class="eyebrow">МАРШРУТ ВЫПОЛНЕНИЯ</div><h2>Стадии генерации</h2></div><span class="muted">{{ run.stages.length }} стадий</span></div>
+        <ol class="stage-list">@for (stage of run.stages; track stage.stageId; let index = $index) {
+          <li class="stage-item" [attr.data-status]="stage.status"><span class="stage-number" aria-hidden="true">{{ stage.status === 'passed' ? '✓' : index + 1 }}</span><div class="stage-content"><div class="stage-heading"><h3>{{ stage.name }}</h3><span class="stage-label">{{ statusLabel(stage.status) }}</span></div><p class="stage-message">{{ stage.message || stageDescription(stage.stageId) }}</p>@if (stage.attempt > 0) { <small class="muted">Попытка {{ stage.attempt }} @if (stage.finishedAt) { · {{ stage.finishedAt | date:'HH:mm:ss' }} }</small> }</div></li>
+        }</ol>
+        <p class="audit-note">Аудит содержит информационные находки. Его выполнение не подтверждает отсутствие уязвимостей.</p>
+      </section>
+      <section class="logs-section"><div class="logs-header"><div><div class="eyebrow">ЖУРНАЛ СОБЫТИЙ</div><h2>Что происходит сейчас</h2></div><span class="log-live" [class.live]="run.status === 'queued' || run.status === 'running'">{{ run.status === 'queued' || run.status === 'running' ? '● LIVE' : 'LOG' }}</span></div>
+        @if (logError) { <div class="run-notice error-notice" role="alert">{{ logError }} <button mat-button (click)="poll()">Повторить</button></div> }
+        <div class="logs-content" tabindex="0" aria-label="Журнал выполнения">@for (log of logs; track log.cursor) { <div class="log-line"><time>{{ log.createdAt | date:'HH:mm:ss' }}</time><div><span class="log-stage">{{ stageName(log.stageId) }}</span><pre>{{ log.message }}</pre></div></div> } @empty { <p class="log-empty">{{ run.status === 'queued' ? 'Журнал появится, когда исполнитель начнёт работу.' : 'Записей пока нет.' }}</p> }</div>
+        <div class="log-footer">Последние {{ logs.length }} записей · до 2 000 на экране</div>
+      </section>
+    </div>
+  } @else if (error) { <div class="run-notice error-notice" role="alert">{{ error }} <button mat-button (click)="poll()">Повторить</button></div> } @else { <div class="empty-state"><mat-spinner diameter="36"></mat-spinner><p>Открываем запуск…</p></div> }
+</div>

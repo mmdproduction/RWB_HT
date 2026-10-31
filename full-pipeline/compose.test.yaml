@@ -1,0 +1,17 @@
+name: rwb-pipeline-tests
+services:
+  db:
+    image: postgres:17.9
+    environment:
+      POSTGRES_DB: pipeline_test
+      POSTGRES_USER: pipeline_test
+      POSTGRES_PASSWORD: test_password
+    ports:
+      - '127.0.0.1:55439:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U pipeline_test -d pipeline_test']
+      interval: 2s
+      timeout: 3s
+      retries: 30

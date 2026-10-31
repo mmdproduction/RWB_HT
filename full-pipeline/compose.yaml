@@ -1,0 +1,72 @@
+name: rwb-full-pipeline
+services:
+  db:
+    image: postgres:17.9
+    environment:
+      POSTGRES_DB: pipeline
+      POSTGRES_USER: pipeline
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run scripts/setup_env.py}
+    ports: ["127.0.0.1:55440:5432"]
+    volumes: ["pipeline-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pipeline -d pipeline"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      DATABASE_URL: postgresql://pipeline:${POSTGRES_PASSWORD}@db:5432/pipeline
+      WORKER_KEY: ${WORKER_KEY:?run scripts/setup_env.py}
+      ARTIFACT_ROOT: /artifacts
+      LLM_MODEL: ${LLM_MODEL:-qwen3.8-27b}
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://127.0.0.1:14000/v1}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LEASE_SECONDS: ${LEASE_SECONDS:-120}
+    ports: ["127.0.0.1:8100:8000"]
+    volumes: ["${PIPELINE_WORKSPACE_ROOT:?run scripts/setup_env.py}/artifacts:/artifacts:ro"]
+    depends_on:
+      db: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/ready')"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+  frontend:
+    build: ./frontend
+    ports: ["127.0.0.1:8090:80"]
+    depends_on:
+      api: {condition: service_healthy}
+    restart: unless-stopped
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    # Linux host network reaches the SSH tunnel bound to 127.0.0.1:14000.
+    network_mode: host
+    working_dir: ${PIPELINE_WORKSPACE_ROOT:?run scripts/setup_env.py}
+    environment:
+      PLATFORM_API_URL: http://127.0.0.1:8100
+      WORKER_KEY: ${WORKER_KEY:?run scripts/setup_env.py}
+      ARTIFACT_ROOT: ${PIPELINE_WORKSPACE_ROOT}/artifacts
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://127.0.0.1:14000/v1}
+      LLM_MODEL: ${LLM_MODEL:-qwen3.8-27b}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_TIMEOUT: ${LLM_TIMEOUT:-240}
+      LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-12000}
+      LLM_429_MAX_RETRIES: ${LLM_429_MAX_RETRIES:-4}
+      LLM_429_WAIT_SECONDS: ${LLM_429_WAIT_SECONDS:-180}
+      COMMAND_TIMEOUT: ${COMMAND_TIMEOUT:-900}
+      PUBLIC_HOST: ${PUBLIC_HOST:-127.0.0.1}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${PIPELINE_WORKSPACE_ROOT}:${PIPELINE_WORKSPACE_ROOT}
+    depends_on:
+      api: {condition: service_healthy}
+    restart: unless-stopped
+volumes:
+  pipeline-data:

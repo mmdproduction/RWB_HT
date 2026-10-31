@@ -1,0 +1,17 @@
+<header class="app-header">
+  <a class="brand" href="/" aria-label="Главная страница"><span class="brand-symbol" aria-hidden="true">{{(spec?.title || 'П').charAt(0)}}</span><span class="brand-name">{{spec?.title || 'Приложение'}}</span></a>
+  <div *ngIf="token && requiresLogin" class="account"><span class="role">{{loggedRole}}</span><button mat-button (click)="logout()">Выйти</button></div>
+</header>
+<mat-progress-bar *ngIf="loading" mode="indeterminate" aria-label="Загрузка" class="app-progress"></mat-progress-bar>
+<main class="focused-layout" [attr.aria-busy]="loading">
+  <div class="page-intro" *ngIf="spec"><h1>{{spec.title}}</h1><p *ngIf="purpose" class="intro">{{purpose}}</p></div>
+  <div *ngIf="spec?.externalIntegrations?.length" class="alert warning" role="note">Демонстрационный режим: внешние сервисы заменены локальными имитациями. Деньги не списываются, сообщения не отправляются; карты и сторонние данные демонстрационные.</div>
+  <div *ngIf="error" class="alert error" role="alert"><span>{{error}}</span><button mat-button (click)="retry()" [disabled]="loading">Повторить</button></div>
+  <div *ngIf="!spec && loading" class="loading-state" role="status"><p>Готовим приложение…</p></div>
+  <mat-card *ngIf="spec && !token && requiresLogin" class="login">
+    <mat-card-header><mat-card-title>Добро пожаловать</mat-card-title></mat-card-header>
+    <mat-card-content><p class="muted">Выберите роль для входа в демонстрационное приложение.</p><form (ngSubmit)="login()"><mat-form-field appearance="outline"><mat-label>Роль</mat-label><mat-select [(ngModel)]="role" name="role"><mat-option *ngFor="let r of roles" [value]="r">{{r}}</mat-option></mat-select></mat-form-field><button mat-flat-button type="submit" [disabled]="loading || !role">{{loading ? 'Подключение…' : 'Продолжить'}}</button></form></mat-card-content>
+  </mat-card>
+  <div *ngIf="spec && !token && !requiresLogin && loading" class="loading-state" role="status"><p>Подключение…</p></div>
+  <section *ngIf="spec && token" class="application-canvas" aria-label="Приложение"><generated-panel></generated-panel><activity-feed></activity-feed></section>
+</main>

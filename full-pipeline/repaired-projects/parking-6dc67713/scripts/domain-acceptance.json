@@ -1,0 +1,23 @@
+[
+  {
+    "requirementIds": [
+      "REQ-001",
+      "REQ-002",
+      "REQ-003",
+      "REQ-004",
+      "REQ-005"
+    ],
+    "name": "Проверка статуса парковочной сессии и уведомлений",
+    "role": "driver",
+    "steps": [
+      {
+        "method": "GET",
+        "path": "/api/generated/status",
+        "status": 200,
+        "contains": {
+          "session": null
+        }
+      }
+    ]
+  }
+]

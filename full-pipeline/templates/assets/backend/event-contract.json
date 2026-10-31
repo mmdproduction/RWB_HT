@@ -1,0 +1,1 @@
+{"schemaVersion":1,"topic":"app.business.v1","consumerGroup":"activity-v1","delivery":"at-least-once","consumerEffect":"persist actor-scoped activity history","events":[]}

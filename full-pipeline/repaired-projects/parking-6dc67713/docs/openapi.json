@@ -1,0 +1,438 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Контроль парковочных сессий для служебных авто",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/api/schema": {
+      "get": {
+        "summary": "Application specification",
+        "responses": {
+          "200": {
+            "description": "AppSpec"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Issue a demo role token; not production identity",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role not permitted"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "role"
+                ],
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "admin",
+                      "driver"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "summary": "Database version and PostGIS availability",
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role not permitted"
+          }
+        }
+      }
+    },
+    "/api/parking/zones": {
+      "get": {
+        "summary": "List PostGIS zones",
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role not permitted"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create or update validated polygon; admin only",
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role not permitted"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "name",
+                  "rate",
+                  "coordinates"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "rate": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "coordinates": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/parking/active": {
+      "get": {
+        "summary": "Current position and active paid session",
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role not permitted"
+          }
+        }
+      }
+    },
+    "/api/parking/history": {
+      "get": {
+        "summary": "Completed sessions for current actor",
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role not permitted"
+          }
+        }
+      }
+    },
+    "/api/parking/events": {
+      "get": {
+        "summary": "Current actor route and warning events",
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role not permitted"
+          }
+        }
+      }
+    },
+    "/api/parking/position": {
+      "post": {
+        "summary": "Report position, preserve existing paid session",
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role not permitted"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "longitude",
+                  "latitude"
+                ],
+                "properties": {
+                  "longitude": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  },
+                  "latitude": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/parking/sessions": {
+      "post": {
+        "summary": "Explicitly confirm demo payment and start session",
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role not permitted"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "zoneId",
+                  "durationMinutes",
+                  "confirmDemoPayment"
+                ],
+                "properties": {
+                  "zoneId": {
+                    "type": "string"
+                  },
+                  "durationMinutes": {
+                    "type": "integer",
+                    "minimum": 15,
+                    "maximum": 1440
+                  },
+                  "confirmDemoPayment": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/parking/clock": {
+      "post": {
+        "summary": "Advance controlled demo clock; admin only",
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role not permitted"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "advanceSeconds"
+                ],
+                "properties": {
+                  "advanceSeconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 86400
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/parking/sessions/{id}/stop": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Driver explicitly ends own session",
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role not permitted"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {},
+    "securitySchemes": {
+      "demoBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Opaque demo role token from /api/auth/login; expires after 12h"
+      }
+    }
+  }
+}

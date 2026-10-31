@@ -1,0 +1,11 @@
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" routerLink="/new" aria-label="RUSSTECH — все запуски"><span class="brand-mark">R</span><span>RUSSTECH<small>AI PIPELINE PLATFORM</small></span></a>
+    <nav aria-label="Основная навигация"><a mat-stroked-button routerLink="/new">Все запуски</a><a mat-flat-button routerLink="/new" fragment="requirements">+ Новый проект</a></nav>
+  </div>
+</header>
+<main class="platform-shell">
+  <div class="service-overview"><app-environment-status></app-environment-status><app-qwen-status></app-qwen-status></div>
+  <router-outlet></router-outlet>
+</main>
+<footer class="site-footer"><span>RUSSTECH / AI-конвейер</span><span>От требований до работающего приложения</span></footer>

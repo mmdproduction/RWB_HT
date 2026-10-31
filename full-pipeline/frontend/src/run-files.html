@@ -1,0 +1,64 @@
+@if (view === 'files') {
+  <section class="file-browser" aria-label="Файлы запуска">
+    <header class="file-browser-heading"><div><div class="file-eyebrow">МАТЕРИАЛЫ ПРОЕКТА</div><h2>Файлы запуска <span class="file-count">{{ files().length }}</span></h2><p>Код, конфигурация, документация и отчеты появляются по мере выполнения.</p></div><div class="file-heading-actions"><button type="button" (click)="refresh()" [disabled]="listLoading()">{{ listLoading() ? 'Обновляем…' : '↻ Обновить' }}</button><a [href]="archiveUrl()" [class.file-disabled]="!files().length" [attr.aria-disabled]="!files().length" [attr.tabindex]="!files().length ? -1 : 0" download>↓ Скачать ZIP</a></div></header>
+    @if (listError()) { <div class="file-notice file-error" role="alert">{{ listError() }} <button type="button" (click)="refresh()">Повторить</button></div> }
+    <div class="file-workspace">
+      <aside class="file-sidebar" aria-label="Проводник проекта">
+        <div class="file-tree-tools"><label for="file-search">Найти файл по пути</label><div class="file-search-wrap"><span aria-hidden="true">⌕</span><input id="file-search" type="search" placeholder="src/, .cs, отчет…" [ngModel]="query()" (ngModelChange)="query.set($event)" autocomplete="off"></div><div class="file-tree-toolbar"><span>{{ query() ? matchedCount() + ' из ' : '' }}{{ files().length }} файлов</span><button type="button" (click)="expandAll()" aria-label="Развернуть все папки" title="Развернуть папки">⊞</button><button type="button" (click)="collapseAll()" aria-label="Свернуть все папки" title="Свернуть папки">⊟</button></div></div>
+        <div class="file-tree" aria-label="Папки и файлы">
+          @for (row of tree(); track row.path) {
+            @let file = row.file;
+            @if (row.folder) {
+              <button type="button" class="file-tree-row file-folder" [style.padding-left.px]="12 + row.depth * 15" [attr.aria-expanded]="!isCollapsed(row.path)" [title]="row.path" (click)="toggleFolder(row.path)"><span class="file-chevron" aria-hidden="true">{{ isCollapsed(row.path) ? '›' : '⌄' }}</span><span class="file-folder-icon" aria-hidden="true">▱</span><span class="file-row-name">{{ row.name }}</span></button>
+            } @else if (file) {
+              <button type="button" class="file-tree-row" [class.file-selected]="selectedPath() === file.path" [style.padding-left.px]="26 + row.depth * 15" [attr.aria-current]="selectedPath() === file.path ? 'true' : null" [title]="file.path" (click)="selectFile(file)"><span class="file-type-icon" aria-hidden="true">{{ file.restricted ? '◇' : file.kind === 'source' ? '‹›' : '≡' }}</span><span class="file-row-name">{{ file.name }}</span>@if (file.restricted) { <span class="file-private-label">закрыт</span> }</button>
+            }
+          } @empty {
+            <div class="file-tree-empty">{{ query() ? 'Совпадений нет. Измените запрос.' : listLoading() ? 'Загружаем список файлов…' : 'Файлы еще не созданы.' }}</div>
+          }
+        </div>
+        <div class="file-tree-footnote">Зависимости и результаты сборки скрыты.@if (excludedDirectories().length) { <details><summary>Исключенные каталоги</summary><p>{{ excludedDirectories().join(', ') }}</p></details> }<span>Секретные файлы показаны без содержимого.</span></div>
+      </aside>
+      <section class="file-preview" aria-label="Просмотр файла">
+        @if (selectedFile(); as file) {
+          @let content = preview();
+          <div class="file-editor-tab"><span aria-hidden="true">{{ file.restricted ? '◇' : '‹›' }}</span><strong>{{ file.name }}</strong><span class="file-language">{{ file.language || 'text' }}</span></div>
+          <div class="file-preview-toolbar"><div class="file-path" [title]="file.path">{{ file.path }}<span>{{ kindLabel(file.kind) }} · {{ sizeLabel(file.size) }}</span></div><div class="file-preview-actions">@if (file.viewable && !file.restricted) { <button type="button" [disabled]="!preview()" (click)="copyCode()">Копировать</button> }@if (!file.restricted) { <a [href]="downloadUrl(file.path)" download>↓ Скачать</a> }</div></div>
+          @if (copyMessage()) { <div class="file-copy-message" role="status">{{ copyMessage() }}</div> }
+          @if (contentError()) { <div class="file-notice file-error" role="alert">{{ contentError() }} <button type="button" (click)="selectFile(file)">Повторить</button></div> }
+          @if (file.restricted) {
+            <div class="file-preview-empty"><span aria-hidden="true">◇</span><h3>Содержимое защищено</h3><p>Этот файл может содержать пароли, токены и настройки доступа. Просмотр, скачивание и включение в ZIP недоступны.</p></div>
+          } @else if (!file.viewable) {
+            <div class="file-preview-empty"><span aria-hidden="true">▤</span><h3>Предпросмотр недоступен</h3><p>Бинарные и неподдерживаемые файлы можно скачать и открыть в подходящем приложении.</p><a [href]="downloadUrl(file.path)" download>↓ Скачать {{ file.name }}</a></div>
+          } @else if (content) {
+            @if (contentLoading()) { <div class="file-refresh-note" role="status">Обновляем содержимое…</div> }
+            @if (content.truncated) { <div class="file-notice">Показан фрагмент файла. Скачайте файл, чтобы увидеть полное содержимое.</div> }
+            <div class="file-code-scroll" tabindex="0" [attr.aria-label]="'Код файла ' + file.path"><pre class="file-code">@for (line of lines(); track $index) {<span class="file-code-line"><span class="file-line-number" aria-hidden="true">{{ $index + 1 }}</span><span class="file-line-text">{{ line || ' ' }}</span></span>}</pre></div>
+            <div class="file-editor-status"><span>{{ content.language || file.language || 'text' }} · {{ lines().length }} строк</span><span>Только просмотр{{ content.truncated ? ' · Фрагмент' : '' }}</span></div>
+          } @else {
+            <div class="file-preview-empty"><span aria-hidden="true">‹›</span><h3>{{ contentLoading() ? 'Загружаем содержимое…' : 'Содержимое недоступно' }}</h3><p>{{ contentLoading() ? 'Файл откроется в этой области.' : 'Повторите загрузку файла.' }}</p></div>
+          }
+        } @else {
+          <div class="file-preview-empty"><span aria-hidden="true">‹›</span><h3>{{ files().length ? 'Выберите файл' : 'Здесь появится ваш проект' }}</h3><p>{{ files().length ? 'Откройте файл в проводнике слева, чтобы прочитать код или отчет.' : 'Проводник доступен на любой стадии запуска, в том числе после ошибки. Файлы появятся сразу после сохранения исполнителем.' }}</p></div>
+        }
+      </section>
+    </div>
+    <footer class="file-browser-footer"><span>{{ run.status === 'running' || run.status === 'queued' ? '● Обновляется вместе с запуском' : 'Сохраненные файлы запуска' }}</span><span>ZIP содержит доступные файлы проекта без секретов и исключенных каталогов.</span></footer>
+  </section>
+} @else {
+  <section class="file-business-task" aria-label="Бизнес-задача запуска">
+    <header class="file-task-heading"><div class="file-eyebrow">ОТ ЗАПРОСА К СПЕЦИФИКАЦИИ</div><h2>Бизнес-задача</h2><p>Исходный запрос и сохраненное описание планируемого приложения. Спецификация отражает решения анализа; соответствие готового продукта требует проверки.</p></header>
+    <div class="file-task-grid">
+      <section class="file-task-card"><div class="file-task-card-heading"><span class="file-task-index">01</span><div><h3>Ваш исходный запрос</h3><p>Требования, с которыми начат запуск</p></div></div><pre class="file-task-original">{{ run.requirements }}</pre></section>
+      <section class="file-task-card"><div class="file-task-card-heading"><span class="file-task-index">02</span><div><h3>Что планируется создать</h3><p>{{ specPath() || 'Анализ и спецификация приложения' }}</p></div></div>
+        @if (specError()) { <div class="file-notice file-error" role="alert">{{ specError() }}</div> }
+        @if (listError()) { <div class="file-notice file-error" role="alert">{{ listError() }} <button type="button" (click)="refresh()">Повторить</button></div> }
+        @if (spec()) {
+          @for (section of specSections(); track section.label) { <section class="file-task-section"><h4>{{ section.label }}</h4><pre>{{ section.text }}</pre></section> }
+          @if (!specSections().length) { <p class="file-task-pending">В спецификации пока нет поддерживаемых полей. Полное содержимое доступно во вкладке «Файлы».</p> }
+          <p class="file-task-disclaimer">Показаны только поля из app-spec.json. Отсутствующие сведения не додумываются; в ранних запусках цель берется из summary, сценарии — из workflows.</p>
+        } @else { <div class="file-task-pending"><h4>{{ listLoading() ? 'Загружаем анализ…' : 'Спецификация пока недоступна' }}</h4><p>После сохранения app-spec.json здесь появятся бизнес-цель, основное действие, экраны, требования и допущения. Исходный запрос уже доступен слева.</p></div> }
+      </section>
+    </div>
+  </section>
+}

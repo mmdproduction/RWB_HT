@@ -1,0 +1,30 @@
+<section class="page-header animate-fade-in"><div class="eyebrow">ОТ ИДЕИ К ПРИЛОЖЕНИЮ</div><h1>Бизнес-идея</h1><p>Опишите задачу. Конвейер спроектирует, соберёт и проверит приложение.</p></section>
+<section class="stats-grid" aria-label="Обзор запусков">
+  <div class="stat-card"><span class="stat-label">Всего запусков</span><strong class="stat-value">{{ stats.totalRuns }}</strong></div>
+  <div class="stat-card"><span class="stat-label">Успешных</span><strong class="stat-value">{{ stats.successRate }}<small>%</small></strong></div>
+  <div class="stat-card"><span class="stat-label">Сейчас в работе</span><strong class="stat-value">{{ stats.activeRuns }}</strong></div>
+  <div class="stat-card"><span class="stat-label">Готовых приложений</span><strong class="stat-value">{{ stats.successRuns }}</strong></div>
+</section>
+<section class="main-card panel animate-slide-up">
+  <div class="eyebrow">01 / НОВЫЙ ПРОЕКТ</div><h2 class="card-title">Что будем создавать?</h2><p class="card-subtitle">Добавьте пользователей, основные действия, данные и ограничения. Текст будет передан целиком.</p>
+  <form (ngSubmit)="startRun()">
+    <label class="field-label" for="requirements">Бизнес-требования</label>
+    <textarea id="requirements" name="requirements" class="custom-textarea" maxlength="100000" required [ngModel]="requirements" (ngModelChange)="saveDraft($event)" placeholder="Например: система управления парковкой. Водитель выбирает зону и оплачивает сеанс, администратор задаёт тарифы…"></textarea>
+    <div class="char-count">{{ requirements.length | number:'1.0-0' }} / 100 000 символов</div>
+    @if (error) { <div class="run-notice error-notice" role="alert">{{ error }}</div> }
+    <div class="form-actions"><p class="time-info">Каждый запуск — отдельный проект. Время зависит от задачи и доступности Qwen.</p><button class="launch-btn" mat-flat-button type="submit" [disabled]="loading || !requirements.trim() || requirements.length > 100000">@if (loading) { <mat-spinner diameter="18"></mat-spinner> }{{ loading ? 'Создаём запуск…' : 'Создать приложение ↗' }}</button></div>
+  </form>
+  <div class="hint-box"><strong>Для точного результата</strong><p>Укажите роли, ключевые сценарии, внешние интеграции и признаки успешного выполнения задачи.</p></div>
+</section>
+<section class="recent-section panel" id="history">
+  <div class="section-heading"><div><div class="eyebrow">02 / ИСТОРИЯ</div><h2>Запуски конвейера</h2><p class="muted">Последние 100 запусков · статистика по этой выборке</p></div><button mat-stroked-button (click)="refreshHistory()">↻ Обновить</button></div>
+  @if (lastUpdated) { <p class="updated">Обновлено {{ lastUpdated | date:'HH:mm:ss' }}</p> }
+  @if (listError) { <div class="run-notice error-notice" role="alert">{{ listError }} <button mat-button (click)="refreshHistory()">Повторить</button></div> }
+  <div class="recent-list">
+    @if (listLoading) { <p class="list-message">Загружаем историю…</p> }
+    @else if (!recentRuns.length && !listError) { <div class="empty-state"><h3>Начните с первой идеи</h3><p>Добавьте требования выше — здесь появятся статус и результаты запуска.</p></div> }
+    @for (run of recentRuns; track run.id) {
+      <button type="button" class="recent-item" (click)="navigateToStatus(run.id)"><span class="run-thumbnail" aria-hidden="true">⌘</span><span class="recent-description"><strong>{{ run.name }}</strong><small>{{ run.id }} · {{ run.time }}</small></span><span class="status-pill" [attr.data-status]="run.status">{{ statusLabel(run.status) }}</span><span class="row-arrow" aria-hidden="true">↗</span></button>
+    }
+  </div>
+</section>

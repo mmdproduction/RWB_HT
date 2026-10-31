@@ -1,0 +1,18 @@
+<div class="run-workspace">
+  @if (run) {
+    <app-run-header [run]="run" [active]="tab" [fileCount]="fileCount" [refreshing]="busy" (refresh)="load()" (reuse)="reuse()"></app-run-header>
+    @if (error) { <div class="run-notice error-notice" role="alert">{{ error }} <button mat-button (click)="load()">Повторить</button></div> }
+    @if (tab === 'result') {
+      <section class="result-banner" [attr.data-status]="run.status"><span class="result-symbol" aria-hidden="true">{{ run.status === 'succeeded' ? '✓' : '↗' }}</span><div><div class="eyebrow">РЕЗУЛЬТАТ ЗАПУСКА</div><h2>{{ run.status === 'succeeded' ? 'Приложение готово' : statusLabel(run.status) }}</h2><p>{{ run.message || 'Ниже доступны фактические результаты запуска.' }}</p><div class="result-links">@if (run.appUrl) { <a mat-flat-button [href]="run.appUrl" target="_blank" rel="noopener noreferrer">Открыть приложение ↗</a> }@if (run.repositoryUrl) { <a mat-stroked-button [href]="run.repositoryUrl" target="_blank" rel="noopener noreferrer">Репозиторий ↗</a> }</div>@if (!run.appUrl) { <p class="muted">Ссылка на приложение пока не опубликована.</p> }</div></section>
+      <section class="metrics-grid" aria-label="Метрики запуска">
+        <div class="metric-card"><span class="metric-label">Длительность</span><strong class="metric-value">{{ duration(run.metrics.durationSeconds) }}</strong></div>
+        <div class="metric-card"><span class="metric-label">Обращения к модели</span><strong class="metric-value">{{ run.metrics.modelCalls }}</strong><span class="metric-note">Повторов: {{ run.metrics.retries }}</span></div>
+        <div class="metric-card"><span class="metric-label">Токены · вход / выход</span><strong class="metric-value token-value">{{ tokens(run.metrics.inputTokens) }} / {{ tokens(run.metrics.outputTokens) }}</strong>@if (run.metrics.tokenUsageComplete === false) { <span class="metric-note">Модель вернула неполные сведения</span> }</div>
+        <div class="metric-card"><span class="metric-label">Файлов в запуске</span><strong class="metric-value">{{ fileCount }}</strong></div>
+      </section>
+      <section class="panel result-files-entry"><div><h2>Исходники, отчёты и документация</h2><p class="muted">Откройте дерево проекта, прочитайте сохранённую бизнес-задачу или скачайте весь результат.</p></div><div class="workspace-actions"><a mat-stroked-button [routerLink]="['/result', runId]" [queryParams]="{ view: 'files' }">Открыть файлы →</a><button mat-flat-button [disabled]="downloading || !fileCount" (click)="download()">{{ downloading ? 'Готовим архив…' : '↓ Скачать ZIP' }}</button></div></section>
+      @if (downloadError) { <div class="run-notice error-notice" role="alert">{{ downloadError }}</div> }
+    }
+    <div class="run-files-container" [hidden]="tab === 'result'"><app-run-files [run]="run" [view]="tab === 'task' ? 'task' : 'files'" (countChange)="fileCount = $event"></app-run-files></div>
+  } @else if (error) { <div class="run-notice error-notice" role="alert">{{ error }} <button mat-button (click)="load()">Повторить</button></div> } @else { <div class="empty-state"><mat-spinner diameter="36"></mat-spinner><p>Открываем результат…</p></div> }
+</div>

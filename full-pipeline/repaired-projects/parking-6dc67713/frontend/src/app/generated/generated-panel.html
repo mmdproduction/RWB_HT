@@ -1,0 +1,65 @@
+<div class="panel-container">
+  <div class="header">
+    <h2>Контроль парковки</h2>
+    <p class="subtitle">Статус активной сессии и уведомления</p>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  </div>
+
+  <div *ngIf="error" class="error-state">
+    <p>{{ error }}</p>
+    <button mat-button (click)="load()">Повторить</button>
+  </div>
+
+  <div *ngIf="!loading && !error" class="content">
+    <mat-card class="session-card" [class.warning]="isWarning">
+      <div class="card-header">
+        <h3>Активная сессия</h3>
+        <span *ngIf="isWarning" class="badge">Предупреждение</span>
+      </div>
+      
+      <div *ngIf="session" class="session-details">
+        <div class="detail-row">
+          <span class="label">Зона:</span>
+          <span class="value">{{ session.zoneId }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Осталось:</span>
+          <span class="value time">{{ remainingMinutes }} мин</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Истекает:</span>
+          <span class="value">{{ session.expiresAt | date:'HH:mm:ss' }}</span>
+        </div>
+      </div>
+      
+      <div *ngIf="!session" class="empty-session">
+        <p>Нет активной сессии</p>
+      </div>
+    </mat-card>
+
+    <mat-card class="events-card">
+      <div class="card-header">
+        <h3>Уведомления</h3>
+      </div>
+      
+      <div *ngIf="events.length === 0" class="empty-events">
+        <p>Нет уведомлений</p>
+      </div>
+      
+      <div *ngFor="let event of events; trackBy: trackById" class="event-item">
+        <div class="event-header">
+          <span class="event-kind">{{ event.kind }}</span>
+          <span class="event-time">{{ event.recordedAt | date:'HH:mm:ss' }}</span>
+        </div>
+        <p class="event-message">{{ event.message }}</p>
+        <div *ngIf="event.fromZone || event.toZone" class="event-zones">
+          <span *ngIf="event.fromZone">От: {{ event.fromZone }}</span>
+          <span *ngIf="event.toZone">В: {{ event.toZone }}</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+</div>
